@@ -525,6 +525,14 @@ input {
     padding-top: 48px;
   }
 
+  .app-header {
+    flex-wrap: wrap;
+  }
+
+  .controls {
+    padding-top: 0;
+  }
+
   .weather-card {
     padding: 24px;
   }
