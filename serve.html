@@ -1,0 +1,424 @@
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <title>Rasengan</title>    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>    <style>  
+    html, body { margin: 0; height: 100%; background: radial-gradient(circle at top, #1d2445 0%, #080b14 46%, #000 100%); overflow: hidden; font-family: 'Georgia', 'Times New Roman', serif; }  
+
+    .stars, .stars::before, .stars::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.9) 1.5px, transparent 2px),
+        radial-gradient(circle, rgba(255,215,126,0.7) 1px, transparent 2px),
+        radial-gradient(circle, rgba(153,200,255,0.8) 1px, transparent 2px);
+      background-size: 180px 180px;
+      background-position: 0 0, 60px 80px, 130px 35px;
+      opacity: 0.7;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .moon {
+      position: fixed;
+      right: 80px;
+      top: 70px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fffef3, #d9d7ff 42%, #8aa4ff 100%);
+      box-shadow: 0 0 35px rgba(176, 195, 255, 0.9), 0 0 80px rgba(176, 195, 255, 0.35);
+      z-index: 1;
+      opacity: 0.9;
+    }
+  
+    .layer {  
+      position: fixed; inset: 0;  
+      width: 100vw; height: 100vh;  
+      object-fit: cover;  
+      transform: scaleX(-1);  
+    }  
+    #cam      { z-index: 0; }  
+    #skeleton { z-index: 2; pointer-events: none; }  
+  
+    .vignette {  
+      position: fixed; inset: 0;  
+      background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.55) 100%);  
+      pointer-events: none; z-index: 4;  
+    }  
+  
+    .rasengan {  
+      position: fixed; top: 0; left: 0;  
+      width: 1500px; height: auto;  
+      transform: translate(-50%, -50%);  
+      pointer-events: none;  
+      mix-blend-mode: screen;  
+      opacity: 0;  
+      will-change: opacity, left, top;  
+      z-index: 10;  
+    }  
+
+    #hud {
+      position: fixed;
+      left: 24px;
+      top: 24px;
+      display: flex;
+      gap: 12px;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .hud-box {
+      min-width: 130px;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 233, 150, 0.4);
+      background: rgba(18, 17, 38, 0.52);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.35), inset 0 0 18px rgba(255, 215, 120, 0.08);
+      backdrop-filter: blur(6px);
+    }
+
+    .hud-box span {
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      opacity: 0.75;
+      color: #f0dd9e;
+      margin-bottom: 5px;
+    }
+
+    .hud-box strong {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff6d2;
+      text-shadow: 0 0 12px rgba(255, 215, 126, 0.7);
+    }
+
+    #ring {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: 340px;
+      height: 340px;
+      border: 1px solid rgba(255, 216, 107, 0.55);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      box-shadow: 0 0 25px rgba(255, 215, 126, 0.25), inset 0 0 20px rgba(255, 215, 126, 0.08);
+      opacity: 0;
+      z-index: 5;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .spell-text {
+      position: fixed;
+      left: 50%;
+      top: 80px;
+      transform: translateX(-50%);
+      color: #f7d57b;
+      font-size: 28px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-shadow: 0 0 18px rgba(224, 195, 90, 0.8);
+      z-index: 18;
+      pointer-events: none;
+      opacity: 0.8;
+      white-space: nowrap;
+    }
+
+    .portal {
+      position: fixed;
+      left: 50%;
+      top: 58%;
+      width: 340px;
+      height: 340px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(132,230,255,0.22) 0%, rgba(122, 95, 255, 0.18) 20%, rgba(0,0,0,0.05) 42%, rgba(0,0,0,0.32) 60%, rgba(0,0,0,0.75) 100%);
+      border: 2px solid rgba(206, 218, 255, 0.55);
+      box-shadow: 0 0 35px rgba(92, 171, 255, 0.35), inset 0 0 40px rgba(120, 208, 255, 0.2);
+      z-index: 3;
+      pointer-events: none;
+      animation: portalPulse 4s ease-in-out infinite;
+    }
+
+    .portal::before,
+    .portal::after {
+      content: "";
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 233, 160, 0.75);
+      animation: portalSpin 12s linear infinite;
+    }
+
+    .portal::after {
+      inset: 24%;
+      border-color: rgba(132, 230, 255, 0.7);
+      animation-direction: reverse;
+      animation-duration: 9s;
+    }
+
+    .potion {
+      position: fixed;
+      bottom: 56px;
+      width: 52px;
+      height: 110px;
+      border-radius: 0 0 18px 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(106,255,196,0.3) 25%, rgba(58,87,255,0.4) 100%);
+      border: 2px solid rgba(255,255,255,0.3);
+      box-shadow: inset 0 0 18px rgba(255,255,255,0.25), 0 0 20px rgba(98, 188, 255, 0.3);
+      z-index: 7;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .potion::before {
+      content: "";
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 18px;
+      border-radius: 50% 50% 0 0;
+      background: rgba(255,255,255,0.9);
+    }
+
+    .potion.left { left: 46px; }
+    .potion.right { right: 46px; }
+
+    @keyframes portalPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(0.96); box-shadow: 0 0 35px rgba(92, 171, 255, 0.25), inset 0 0 25px rgba(120, 208, 255, 0.15); }
+      50% { transform: translate(-50%, -50%) scale(1.07); box-shadow: 0 0 55px rgba(161, 238, 255, 0.48), inset 0 0 35px rgba(120, 208, 255, 0.28); }
+    }
+
+    @keyframes portalSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .sparkle {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 0 18px rgba(255, 215, 126, 0.9);
+      pointer-events: none;
+      z-index: 15;
+      animation: sparkleFade 1.8s ease-out forwards;
+    }
+
+    @keyframes sparkleFade {
+      0% { transform: scale(0.4); opacity: 0; }
+      20% { opacity: 1; }
+      100% { transform: scale(1.8) translateY(-12px); opacity: 0; }
+    }
+  
+    #hint {  
+      position: fixed; bottom: 16px; left: 50%;  
+      transform: translateX(-50%);  
+      color: #f0dd9e; font-size: 14px; letter-spacing: 0.08em;  
+      background: rgba(20,15,38,0.5);  
+      padding: 6px 12px; border-radius: 999px;  
+      border: 1px solid rgba(255, 216, 107, 0.25);
+      z-index: 6; pointer-events: none;  
+    }  
+  </style>  </head>  
+<body>  
+  <div class="stars"></div>
+  <div class="moon"></div>
+  <div id="hud">
+    <div class="hud-box">
+      <span>House</span>
+      <strong id="modeLabel">Gryffindor</strong>
+    </div>
+    <div class="hud-box">
+      <span>Magic</span>
+      <strong id="powerLabel">0%</strong>
+    </div>
+  </div>
+  <div class="spell-text" id="spellText">Wingardium</div>
+  <div class="portal"></div>
+  <div class="potion left"></div>
+  <div class="potion right"></div>
+  <div id="ring"></div>
+  <video  id="cam"      class="layer" autoplay playsinline muted></video>  
+  <canvas id="skeleton" class="layer"></canvas>  
+  <div    class="vignette"></div>  <video class="rasengan" data-slot="0" src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" muted autoplay loop playsinline preload="auto"></video>
+<video class="rasengan" data-slot="1" src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" muted autoplay loop playsinline preload="auto"></video>
+
+  <script>  
+    const camVideo = document.getElementById('cam');  
+    const canvas   = document.getElementById('skeleton');  
+    const pen      = canvas.getContext('2d');  
+    const orbs     = Array.from(document.querySelectorAll('.rasengan'));  
+    const modeLabel = document.getElementById('modeLabel');
+    const powerLabel = document.getElementById('powerLabel');
+    const ring = document.getElementById('ring');
+    const spellText = document.getElementById('spellText');
+  
+    // Two distinct palettes so each hand's skeleton is obviously different,  
+    // and bones vs joints inside one hand are also different colors.  
+    const PALETTES = {  
+      Left:  { bone: '#ff8a3d', joint: '#fff36a', glow: '#ff5e1a' }, // warm — Naruto orange  
+      Right: { bone: '#62f0ff', joint: '#ff66e0', glow: '#1aa6ff' }  // cool — chakra blue  
+    };  
+  
+    // Per-hand fade-in / fade-out state for the orbs.  
+    const orbState = [  
+      { charge: 0, wasOpen: false },  
+      { charge: 0, wasOpen: false }  
+    ];  
+  
+    const FINGER_TIPS     = [8, 12, 16, 20];  
+    const FINGER_KNUCKLES = [6, 10, 14, 18];  
+  
+    function isPalmOpen(lm) {  
+      const wrist = lm[0];  
+      let extended = 0;  
+      for (let i = 0; i < FINGER_TIPS.length; i++) {  
+        const tip = lm[FINGER_TIPS[i]];  
+        const knk = lm[FINGER_KNUCKLES[i]];  
+        const dTip = Math.hypot(tip.x - wrist.x, tip.y - wrist.y);  
+        const dKnk = Math.hypot(knk.x - wrist.x, knk.y - wrist.y);  
+        if (dTip > dKnk) extended++;  
+      }  
+      return extended >= 3;  
+    }  
+  
+    // Draw bones in one color, joints in another, with a colored glow,  
+    // so the tracking sticks visibly follow each finger.  
+    function paintSkeleton(lm, colors) {  
+      pen.save();  
+      pen.shadowBlur  = 18;  
+      pen.shadowColor = colors.glow;  
+      drawConnectors(pen, lm, HAND_CONNECTIONS, { color: colors.bone, lineWidth: 3 });  
+      pen.restore();  
+  
+      pen.save();  
+      pen.shadowBlur  = 10;  
+      pen.shadowColor = colors.glow;  
+      pen.fillStyle   = colors.joint;  
+      for (const p of lm) {  
+        pen.beginPath();  
+        pen.arc(p.x * canvas.width, p.y * canvas.height, 3.5, 0, Math.PI * 2);  
+        pen.fill();  
+      }  
+      pen.restore();  
+    }  
+  
+    function placeOrb(slot, lm, charge) {  
+      const wrist  = lm[0];  
+      const midKnk = lm[9];  
+  
+      const cx = (wrist.x + midKnk.x) / 2;  
+      const cy = (wrist.y + midKnk.y) / 2;  
+      const handSize = Math.hypot(midKnk.x - wrist.x, midKnk.y - wrist.y);  
+      const lift = handSize * 1.8;  
+  
+      const orb = orbs[slot];  
+      orb.style.left    = `${(1 - cx) * window.innerWidth}px`;  
+      orb.style.top     = `${(cy - lift) * window.innerHeight}px`;  
+      orb.style.opacity = charge.toFixed(3);  
+    }  
+  
+    function onResults(res) {  
+      canvas.width  = camVideo.videoWidth  || canvas.clientWidth;  
+      canvas.height = camVideo.videoHeight || canvas.clientHeight;  
+      pen.clearRect(0, 0, canvas.width, canvas.height);  
+  
+      const seen = [false, false];  
+      let totalPower = 0;
+      let activeHands = 0;
+  
+      if (res.multiHandLandmarks && res.multiHandedness) {  
+        res.multiHandLandmarks.forEach((lm, i) => {  
+          const label  = res.multiHandedness[i].label; // "Left" | "Right"  
+          const slot   = label === 'Right' ? 1 : 0;  
+          const colors = PALETTES[label] || PALETTES.Left;  
+          seen[slot]   = true;  
+  
+          paintSkeleton(lm, colors);  
+  
+          const open = isPalmOpen(lm);  
+          const st   = orbState[slot];  
+          st.charge  = Math.max(0, Math.min(1, st.charge + (open ? 0.06 : -0.18)));  
+  
+          if (open && !st.wasOpen) {  
+            const v = orbs[slot];  
+            v.currentTime = 0;  
+            v.play().catch(err => console.warn('rasengan play failed', err));  
+          }  
+          st.wasOpen = open;  
+  
+          if (st.charge > 0.01) placeOrb(slot, lm, st.charge);  
+          else orbs[slot].style.opacity = 0;  
+
+          totalPower += st.charge;
+          activeHands += 1;
+        });  
+      }  
+  
+      // Decay any hand we didn't see this frame.  
+      for (let i = 0; i < 2; i++) {  
+        if (seen[i]) continue;  
+        orbState[i].charge  = Math.max(0, orbState[i].charge - 0.18);  
+        orbState[i].wasOpen = false;  
+        orbs[i].style.opacity = orbState[i].charge.toFixed(3);  
+      }
+
+      const power = Math.min(100, Math.round(((totalPower + (activeHands ? 0.1 : 0)) / Math.max(1, activeHands || 1)) * 100));
+      powerLabel.textContent = `${power}%`;
+
+      const spells = ['Wingardium', 'Expecto', 'Lumos', 'Protego', 'Accio'];
+      const spellIndex = power > 75 ? 0 : power > 55 ? 1 : power > 30 ? 2 : power > 10 ? 3 : 4;
+      spellText.textContent = spells[spellIndex];
+
+      if (activeHands > 0) {
+        modeLabel.textContent = 'Casting';
+        ring.style.opacity = '0.85';
+        ring.style.transform = `translate(-50%, -50%) scale(${0.7 + power / 120})`;
+      } else {
+        modeLabel.textContent = 'Dormant';
+        ring.style.opacity = '0.15';
+        ring.style.transform = 'translate(-50%, -50%) scale(0.7)';
+      }
+    }  
+
+    function createSparkle() {
+      const sparkle = document.createElement('span');
+      sparkle.className = 'sparkle';
+      sparkle.style.left = `${Math.random() * window.innerWidth}px`;
+      sparkle.style.top = `${Math.random() * window.innerHeight}px`;
+      document.body.appendChild(sparkle);
+      setTimeout(() => sparkle.remove(), 1800);
+    }
+
+    setInterval(() => {
+      for (let i = 0; i < 4; i++) createSparkle();
+    }, 500);
+  
+    const hands = new Hands({  
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`  
+    });  
+    hands.setOptions({  
+      maxNumHands: 2,  
+      modelComplexity: 1,  
+      minDetectionConfidence: 0.65,  
+      minTrackingConfidence:  0.65  
+    });  
+    hands.onResults(onResults);  
+  
+    const camera = new Camera(camVideo, {  
+      onFrame: async () => { await hands.send({ image: camVideo }); },  
+      width:  1280,  
+      height: 720  
+    });  
+    camera.start();  
+  </script>  </body>  
+</html>  
+Output image

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>गणपती बाप्पा मोरया | Ganpati Darshan</title>
+    <link rel="stylesheet" href="Untitled-1.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&family=Rozha+One&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Splash Screen / Opening -->
+    <div id="splash-screen">
+        <div class="mandala-rotate"></div>
+        <h1 class="glow-text">गणपती बाप्पा मोरया</h1>
+        <button id="enter-btn">बाप्पाच्या दर्शनाला या</button>
+    </div>
+
+    <!-- Main Background Canvas for Particles -->
+    <canvas id="particle-canvas"></canvas>
+
+    <main id="main-content" class="hidden">
+        <!-- Navigation -->
+        <nav>
+            <div class="clock">शुभ संध्या</div>
+            <div class="live-status"><span></span> 128 भक्त ऑनलाइन</div>
+            <div class="nav-actions">
+                <a href="#aarti">आरती</a>
+                <a href="#countdown">उत्सव</a>
+                <a href="#darshan">दर्शन</a>
+            </div>
+        </nav>
+
+        <!-- Darshan Section -->
+        <section id="darshan" class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">WELCOME TO</p>
+                <h1>गणपती<br><span>दरबार</span></h1>
+                <p class="hero-subtitle">भक्तीच्या सुरांनी सजलेला डिजिटल दरबार</p>
+            </div>
+            <div class="bappa-container">
+                <div class="aura"></div>
+                <img src="https://chatgpt.com/backend-api/estuary/content?id=file_0000000070a082118b4733ae02ab1878&amp;ts=496522&amp;p=fs&amp;cid=1&amp;sig=695784d561ec37df4227a28db9f206c0fdb153d8d2d20d0be9f18b613aa5b6b3&amp;v=0" alt="Ganpati Bappa" id="bappa-img" onerror="this.src='https://th.bing.com/th/id/OIP.ynn4djzLW1hOipBKvyCQlAHaI_?w=208&amp;h=253&amp;c=7&amp;r=0&amp;o=7&amp;dpr=1.3&amp;pid=1.7&amp;rm=3'">
+                <span class="ai-badge"><i class="fas fa-sparkles"></i> AI DARSHAN</span>
+                
+                <div class="diya left">🪔</div>
+                <div class="diya right">🪔</div>
+            </div>
+
+            <div class="interaction-bar">
+                <button onclick="offerFlower()" title="फूल अर्पण करा"><i class="fas fa-seedling"></i> फूल </button>
+                <button onclick="ringBell()" title="घंटा वाजवा"><i class="fas fa-bell" id="temple-bell"></i> घंटा </button>
+                <button onclick="offerModak()" title="मोदक अर्पण करा"><i class="fas fa-cookie"></i> मोदक </button>
+            </div>
+
+            <button id="celebrate-btn">गणपती बाप्पा मोरया!</button>
+
+            <div class="hero-dock">
+                <div class="dock-mark">ॐ</div>
+                <div class="dock-copy"><strong>आजची आरती ऐका</strong><span>सुखकर्ता दुःखहर्ता · थेट प्रसारण</span></div>
+                <button class="dock-button" onclick="startMusic()"><i class="fas fa-play"></i> सुरू करा</button>
+                <button class="dock-add" onclick="document.getElementById('song-file').click()" title="तुमचे गाणे जोडा"><i class="fas fa-plus"></i></button>
+                <button class="music-link" onclick="startMusic()" title="वेबसाइटमध्ये आरती ऐका"><i class="fab fa-youtube"></i></button>
+            </div>
+            <div class="embedded-player" id="embedded-player">
+                <button class="close-player" onclick="closeEmbeddedPlayer()" title="प्लेयर बंद करा"><i class="fas fa-times"></i></button>
+                <iframe id="youtube-player" title="Ganpati devotional music" src="https://www.youtube.com/embed/videoseries?list=PLNG5PC6r7KAaNGUES6NEgh9O2wJGi9w4F&amp;autoplay=0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+        </section>
+
+        <section class="welcome-section" id="welcome">
+            <p class="section-kicker">SHREE GANESH · ALWAYS OPEN</p>
+            <h2>गणपती दरबार — भक्ती, पुन्हा नव्याने ऐका</h2>
+            <p class="welcome-copy">आरती, प्रसाद आणि बाप्पाच्या आशीर्वादाचा एक शांत डिजिटल अनुभव. प्ले दाबा आणि दरबाराची धून तुमच्यासोबत राहू द्या.</p>
+            <div class="feature-grid">
+                <article class="feature-card"><span class="feature-number">01</span><h3>आरती रेडिओ</h3><p>निवडक भक्तिगीते आणि आरतींचा अखंड प्रवाह.</p></article>
+                <article class="feature-card"><span class="feature-number">02</span><h3>दरबारातील सेवा</h3><p>फूल, मोदक आणि घंटा अर्पण करून सहभागी व्हा.</p></article>
+                <article class="feature-card"><span class="feature-number">03</span><h3>उत्सवाची चाहूल</h3><p>पुढच्या गणेशोत्सवासाठी उलटती वेळ रोज पहा.</p></article>
+            </div>
+        </section>
+
+        <!-- Aarti Section -->
+        <section id="aarti">
+            <h2 class="section-title">सुखकर्ता दुःखहर्ता आरती</h2>
+            <div class="aarti-container">
+                <div class="lyrics-box">
+                    <p>सुखकर्ता दुःखहर्ता वार्ता विघ्नाची |<br>
+                    नुरवी पूर्वी प्रेम कृपा जयाची |<br>
+                    सर्वांगी सुंदर उटी शेंदुराची |<br>
+                    कंठि झळके माळ मुक्ताफळांची || १ ||</p>
+                    <p>जय देव जय देव जय मंगलमूर्ती |<br>
+                    दर्शनमात्रे मनकामना पुरती || धृ ||</p>
+                </div>
+                <div class="animated-diya-large">🔥<br><span>🪔</span></div>
+            </div>
+        </section>
+
+        <!-- Music Player -->
+        <div class="music-player">
+            <div class="song-info">
+                <marquee id="current-song-title">Select a song to play...</marquee>
+            </div>
+            <div class="controls">
+                <button id="prev-track"><i class="fas fa-step-backward"></i></button>
+                <button id="play-pause"><i class="fas fa-play"></i></button>
+                <button id="next-track"><i class="fas fa-step-forward"></i></button>
+                <button id="add-song" title="गाणे जोडा"><i class="fas fa-plus"></i></button>
+            </div>
+            <input type="file" id="song-file" accept="audio/*" hidden>
+            <input type="range" id="progress-bar" value="0" max="100">
+            <div class="volume-container">
+                <i class="fas fa-volume-up"></i>
+                <input type="range" id="volume-slider" value="70" max="100">
+            </div>
+        </div>
+
+        <!-- Countdown Section -->
+        <section id="countdown">
+            <h3>पुढच्या वर्षी लवकर या ❤️</h3>
+            <div class="timer">
+                <div class="time-block"><span id="days">00</span><p>दिवस</p></div>
+                <div class="time-block"><span id="hours">00</span><p>तास</p></div>
+                <div class="time-block"><span id="minutes">00</span><p>मिनेट</p></div>
+            </div>
+        </section>
+
+        <footer>
+            <p>© २०२४ श्री गणेशाय नमः | भक्ती आणि श्रद्धा</p>
+        </footer>
+    </main>
+
+    <!-- Hidden Audio Elements -->
+    <audio id="bg-music"></audio>
+    <audio id="bell-sound" src="assets/sounds/bell.mp3"></audio>
+
+    <script src="Untitled-1.js"></script>
+</body>
+</html>
