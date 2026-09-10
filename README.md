@@ -6,6 +6,8 @@ A responsive weather dashboard built with React and Vite. Search for any city to
 
 ## Live Demo
 
+Visit the deployed app at [rhande427-oss.github.io/weather-app](https://rhande427-oss.github.io/weather-app/).
+
 Run the app locally and open `http://localhost:3000` in your browser:
 
 ```bash
